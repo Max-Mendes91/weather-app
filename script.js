@@ -1,22 +1,4 @@
-// ==========================================
-// TODO: YOUR JAVASCRIPT IMPLEMENTATION
-// ==========================================
-
-// 1. WEATHER ICON MAPPING
-//    - Create an object mapping weather codes to image paths
-//    - Example: {0: './assets/images/icon-sunny.webp', 1: './assets/images/icon-partly-cloudy.webp', ... }
-//    - Use paths: ./assets/images/icon-*.webp
-//    - Available icons from assets:
-//      * icon-sunny.webp
-//      * icon-partly-cloudy.webp
-//      * icon-rain.webp
-//      * icon-fog.webp
-//      * icon-snow.webp
-//      * icon-overcast.webp
-//      * icon-storm.webp
-//      * icon-drizzle.webp
-
-// STEP 1: WEATHER ICON MAPPING
+//  WEATHER ICON MAPPING
 
 // Lookup table that connects Open-Meteo weather codes to your local icons
 const weatherIcons = {
@@ -55,6 +37,7 @@ function getWeatherIcon(code) {
     return weatherIcons[code] || './assets/images/icon-overcast.webp';
 }
 
+
 async function getWeather(lat, long) {
     try {
         const response = await fetch(
@@ -72,16 +55,11 @@ getWeather(52.52, 13.41).then(data => {
     if (data) {
         renderDailyForecast(data);
         renderHourlyForecast(0, data);
+        populateDayDropdown(data);
     }
 });
 
-// 2. RENDER DAILY FORECAST CARDS
-//    - Loop through 7 days of forecast data
-//    - Create card DOM elements with: day name, weather icon (img tag), high temp, low temp
-//    - Append to #dailyForecastContainer
-//    - Add click event listener to select day for hourly forecast
-
-// STEP 2: RENDER DAILY FORECAST CARDS
+//Render Daily forecast 
 
 function renderDailyForecast(data) {
     const container = document.querySelector('#dailyForecastContainer');
@@ -94,17 +72,19 @@ function renderDailyForecast(data) {
 
     days.forEach((date, i) => {
         const card = document.createElement('div');
-        card.className = 'bg- forecast-card p-4 rounded-2xl shadow bg-white hover:bg-gray-100 cursor-pointer flex flex-col items-center text-center';
+        card.className = 'forecast-card p-4 rounded-2xl shadow bg-neutral-800 hover:bg-neutral-300 cursor-pointer flex flex-col items-center text-center';
+
 
         const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' });
         const icon = getWeatherIcon(codes[i]);
 
         card.innerHTML = `
-      <p class="font-semibold">${dayName}</p>
-      <img src="${icon}" alt="Weather Icon" class="w-12 h-12 my-2" />
-      <p class="text-sm text-gray-700">H: ${Math.round(maxTemps[i])}°</p>
-      <p class="text-sm text-gray-500">L: ${Math.round(minTemps[i])}°</p>
-    `;
+            <p class="font-semibold">${dayName}</p>
+            <img src="${icon}" alt="Weather Icon" class="w-12 h-12 my-2" />
+            <p class="text-sm text-white flex gap-2">
+            <span>${Math.round(maxTemps[i])}°</span>
+            <span>${Math.round(minTemps[i])}°</span>
+            </p>`;
 
         // click → trigger hourly forecast display
         card.addEventListener('click', () => {
@@ -114,15 +94,13 @@ function renderDailyForecast(data) {
         container.appendChild(card);
     });
 }
-console.log(getWeatherIcon(0));
 
 
-// 3. RENDER HOURLY FORECAST
+// RENDER HOURLY FORECAST
 //    - Get hourly data for selected day
 //    - Create list items with: time (12-hour format), temperature
 //    - Append to #hourlyForecastContainer
 //    - Update when day changes
-// STEP 3: RENDER HOURLY FORECAST
 
 function renderHourlyForecast(selectedDayIndex, data) {
     const container = document.querySelector('#hourlyForecastContainer');
@@ -159,11 +137,37 @@ function renderHourlyForecast(selectedDayIndex, data) {
     });
 }
 
-// 4. POPULATE DAY SELECTION DROPDOWN
+//POPULATE DAY SELECTION DROPDOWN
 //    - Create 7 day buttons (Monday - Sunday)
 //    - Append to #daySelectionDropdown
 //    - Add click handlers to update #hourlyDaySelector text
 //    - Add click handlers to re-render hourly forecast
+const dayDropdown = document.getElementById('daySelectionDropdown');
+
+function populateDayDropdown(data) {
+    const dayDropdown = document.getElementById('daySelectionDropdown');
+    dayDropdown.innerHTML = '';
+
+    data.daily.time.forEach((date, index) => {
+        const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' });
+
+        const btn = document.createElement('button');
+        btn.textContent = dayName;
+        btn.dataset.dayIndex = index;
+        btn.className = 'w-full text-left px-4 py-2 bg-neutral-800 text-neutral-0 rounded hover:bg-neutral-700 transition-colors text-sm';
+
+        btn.addEventListener('click', () => {
+            // Update selector text
+            document.getElementById('hourlyDaySelector').textContent = dayName;
+            // Render hourly forecast for this day
+            renderHourlyForecast(index, data);
+            // Hide dropdown
+            dayDropdown.classList.add('hidden');
+        });
+
+        dayDropdown.appendChild(btn);
+    });
+}
 
 // 5. SEARCH FUNCTIONALITY
 //    - Listen to #searchInput for user typing
