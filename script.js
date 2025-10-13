@@ -175,7 +175,6 @@ function populateDayDropdown(data) {
 //    - Show results in #searchResults dropdown
 //    - Create clickable location items
 //    - On selection: fetch weather for that location, update all sections
-// STEP 5: SEARCH FUNCTIONALITY
 
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
@@ -188,9 +187,12 @@ searchInput.addEventListener('input', () => {
     // Clear previous timeout
     clearTimeout(searchTimeout);
 
-    if (query.length === 0) {
-        searchResults.classList.add('hidden');
-        searchResults.innerHTML = '';
+    if (!query) {
+        searchResults.classList.remove('hidden');
+        searchResults.innerHTML = `
+        <p class="px-4 py-2 text-red-500 border border-red-500 rounded bg-red-100 text-sm">
+            Please type a location to search
+        </p>`;
         return;
     }
 
@@ -219,17 +221,29 @@ searchInput.addEventListener('input', () => {
                 item.textContent = `${loc.name}, ${loc.country}`;
 
                 item.addEventListener('click', () => {
-                    // Update input field
                     searchInput.value = `${loc.name}, ${loc.country}`;
-                    // Hide results
                     searchResults.classList.add('hidden');
                     searchResults.innerHTML = '';
-                    // Fetch weather for selected location
+
                     getWeather(loc.latitude, loc.longitude).then(weatherData => {
                         if (weatherData) {
                             renderDailyForecast(weatherData);
                             renderHourlyForecast(0, weatherData);
                             populateDayDropdown(weatherData);
+
+                            // Update current weather card
+                            const currentCode = weatherData.daily.weathercode[0];
+                            const currentTemp = weatherData.daily.temperature_2m_max[0];
+                            const today = new Date(weatherData.daily.time[0]);
+
+                            document.getElementById('locationName').textContent = `${loc.name}, ${loc.country}`;
+                            document.getElementById('currentTemp').textContent = `${Math.round(currentTemp)}°`;
+                            document.getElementById('currentWeatherIcon').src = getWeatherIcon(currentCode);
+                            document.getElementById('dateDisplay').textContent = today.toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                month: 'short',
+                                day: 'numeric'
+                            });
                         }
                     });
                 });
@@ -250,6 +264,7 @@ document.addEventListener('click', (e) => {
         searchResults.classList.add('hidden');
     }
 });
+
 
 
 
