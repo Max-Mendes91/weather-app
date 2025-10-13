@@ -456,6 +456,25 @@ function applyPrecipitationUnits() {
     });
 }
 
+// Show checkmark for selected unit
+function updateUnitCheckmarks() {
+    document.querySelectorAll('.unit-radio').forEach(radio => {
+        const checkmark = radio.parentElement.querySelector('.checkmark');
+        if (radio.checked) {
+            checkmark.classList.remove('hidden');
+        } else {
+            checkmark.classList.add('hidden');
+        }
+    });
+}
+
+// Initial update on page load
+updateUnitCheckmarks();
+
+// Update checkmarks whenever a unit is changed
+document.querySelectorAll('.unit-radio').forEach(radio => {
+    radio.addEventListener('change', updateUnitCheckmarks);
+});
 
 
 // 11. EVENT LISTENERS - UNITS DROPDOWN
@@ -526,3 +545,4 @@ function initializeEventListeners() {
     // All event listeners are set up above
     // This function exists for organization and future additions
 }
+initializeEventListeners();

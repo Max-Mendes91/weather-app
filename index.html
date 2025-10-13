@@ -11,6 +11,7 @@
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;500;600;700&family=Bricolage+Grotesque:wght@700&display=swap"
     rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="script.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -53,16 +54,16 @@
 </head>
 
 <body class="bg-neutral-900 text-neutral-0 min-h-screen">
-  
-  
+
+
   <!-- API Error Overlay -->
   <div id="apiError"
     class="hidden fixed inset-0 flex flex-col items-center justify-start bg-neutral-900 bg-opacity-90 z-50 p-4 text-center rounded-lg pt-24">
     <h2 class="text-6xl md:text-4xl text-white text-xl font-bold mb-6">Something went wrong</h2>
-    <p class="text-neutral-300 mb-4">We couldn't connect to the server (API error). Please try<br> again in a few moments.
+    <p class="text-neutral-300 mb-4">We couldn't connect to the server (API error). Please try<br> again in a few
+      moments.
     </p>
-    <button id="retryBtn"
-      class="bg-gray-700 text-white px-4 py-2 rounded font-medium flex items-center gap-2">
+    <button id="retryBtn" class="bg-gray-700 text-white px-4 py-2 rounded font-medium flex items-center gap-2">
       <img src="./assets/images/icon-retry.svg" alt="Retry" class="w-4 h-4">
       Retry
     </button>
@@ -93,48 +94,48 @@
           <!-- Temperature -->
           <div>
             <h5 class="text-xs font-bold text-neutral-300 mb-3 uppercase">Temperature</h5>
-            <label class="flex items-center gap-3 p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
-              <img src="./assets/images/checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-              <input type="radio" name="temperature" value="celsius" class="unit-radio hidden w-4 h-4" checked>
+            <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
               <span class="text-neutral-300 text-sm flex-1">Celsius (°C)</span>
-              
+              <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+              <input type="radio" name="temperature" value="celsius" class="unit-radio hidden" checked>
             </label>
-            <label class="flex items-center gap-3 p-2 rounded hover:bg-neutral-700 cursor-pointer">
-              <img src="./assets/images/checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-              <input type="radio" name="temperature" value="fahrenheit" class="unit-radio hidden w-4 h-4">
+
+            <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
               <span class="text-neutral-300 text-sm flex-1">Fahrenheit (°F)</span>
+              <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+              <input type="radio" name="temperature" value="fahrenheit" class="unit-radio hidden w-4 h-4">
             </label>
           </div>
 
           <!-- Wind Speed -->
           <div class="border-t border-neutral-700 pt-3">
             <h5 class="text-xs font-bold text-neutral-300 mb-3 uppercase">Wind Speed</h5>
-            <label class="flex items-center gap-3 p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
-              <img src="./assets/images/checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-              <input type="radio" name="wind" value="kmh" class="unit-radio hidden w-4 h-4" checked>
+            <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
               <span class="text-neutral-300 text-sm flex-1">km/h</span>
+              <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+              <input type="radio" name="wind" value="kmh" class="unit-radio hidden w-4 h-4" checked>
             </label>
 
-            <label class="flex items-center gap-3 p-2 rounded hover:bg-neutral-700 cursor-pointer">
-              <img src="./assets/images/checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-              <input type="radio" name="wind" value="mph" class="unit-radio hidden w-4 h-4">
+            <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
               <span class="text-neutral-300 text-sm flex-1">mph</span>
+              <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+              <input type="radio" name="wind" value="mph" class="unit-radio hidden w-4 h-4">
             </label>
           </div>
 
           <!-- Precipitation -->
           <div class="border-t border-neutral-700 pt-3">
             <h5 class="text-xs font-bold text-neutral-300 mb-3 uppercase">Precipitation</h5>
-            <label class="flex items-center gap-3 p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
-              <img src="./assets/images/checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-              <input type="radio" name="precipitation" value="mm" class="unit-radio hidden w-4 h-4" checked>
+            <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
               <span class="text-neutral-300 text-sm flex-1">Millimeters (mm)</span>
-              
+              <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+              <input type="radio" name="precipitation" value="mm" class="unit-radio hidden w-4 h-4" checked>
             </label>
-            <label class="flex items-center gap-3 p-2 rounded hover:bg-neutral-700 cursor-pointer">
-              <img src="./assets/images/checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-              <input type="radio" name="precipitation" value="inches" class="unit-radio hidden w-4 h-4">
+
+            <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
               <span class="text-neutral-300 text-sm flex-1">Inches (in)</span>
+              <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+              <input type="radio" name="precipitation" value="inches" class="unit-radio hidden w-4 h-4">
             </label>
           </div>
         </div>
@@ -284,8 +285,5 @@
 
     </div>
   </div>
-
-  <script src="script.js"></script>
 </body>
-
 </html>
