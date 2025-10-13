@@ -175,6 +175,85 @@ function populateDayDropdown(data) {
 //    - Show results in #searchResults dropdown
 //    - Create clickable location items
 //    - On selection: fetch weather for that location, update all sections
+// STEP 5: SEARCH FUNCTIONALITY
+
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+
+let searchTimeout; // for debouncing
+
+searchInput.addEventListener('input', () => {
+    const query = searchInput.value.trim();
+
+    // Clear previous timeout
+    clearTimeout(searchTimeout);
+
+    if (query.length === 0) {
+        searchResults.classList.add('hidden');
+        searchResults.innerHTML = '';
+        return;
+    }
+
+    // Debounce to avoid too many API calls
+    searchTimeout = setTimeout(async () => {
+        try {
+            const response = await fetch(
+                `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5`
+            );
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+
+            // Clear old results
+            searchResults.innerHTML = '';
+
+            if (!data.results || data.results.length === 0) {
+                searchResults.innerHTML = '<p class="px-4 py-2 text-neutral-400 text-sm">No results found</p>';
+                searchResults.classList.remove('hidden');
+                return;
+            }
+
+            // Loop through results and create clickable items
+            data.results.forEach(loc => {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-2 cursor-pointer hover:bg-neutral-700 text-neutral-0';
+                item.textContent = `${loc.name}, ${loc.country}`;
+
+                item.addEventListener('click', () => {
+                    // Update input field
+                    searchInput.value = `${loc.name}, ${loc.country}`;
+                    // Hide results
+                    searchResults.classList.add('hidden');
+                    searchResults.innerHTML = '';
+                    // Fetch weather for selected location
+                    getWeather(loc.latitude, loc.longitude).then(weatherData => {
+                        if (weatherData) {
+                            renderDailyForecast(weatherData);
+                            renderHourlyForecast(0, weatherData);
+                            populateDayDropdown(weatherData);
+                        }
+                    });
+                });
+
+                searchResults.appendChild(item);
+            });
+
+            searchResults.classList.remove('hidden');
+        } catch (err) {
+            console.log('Error fetching locations', err);
+        }
+    }, 300); // 300ms debounce
+});
+
+// Hide search results when clicking outside
+document.addEventListener('click', (e) => {
+    if (!searchResults.contains(e.target) && !searchInput.contains(e.target)) {
+        searchResults.classList.add('hidden');
+    }
+});
+
+
+
+
 
 // 6. LOCAL STORAGE FOR UNITS
 //    - Save selected units to localStorage when changed
@@ -218,18 +297,18 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// 10. SEARCH RESULTS TOGGLE
-const searchInput = document.getElementById('searchInput');
-const searchResults = document.getElementById('searchResults');
+// // 10. SEARCH RESULTS TOGGLE
+// const searchInput = document.getElementById('searchInput');
+// const searchResults = document.getElementById('searchResults');
 
-searchInput.addEventListener('focus', () => {
-    if (searchInput.value.length > 0) {
-        searchResults.classList.remove('hidden');
-    }
-});
+// searchInput.addEventListener('focus', () => {
+//     if (searchInput.value.length > 0) {
+//         searchResults.classList.remove('hidden');
+//     }
+// });
 
-document.addEventListener('click', (e) => {
-    if (!searchResults.contains(e.target) && !searchInput.contains(e.target)) {
-        searchResults.classList.add('hidden');
-    }
-});
+// document.addEventListener('click', (e) => {
+//     if (!searchResults.contains(e.target) && !searchInput.contains(e.target)) {
+//         searchResults.classList.add('hidden');
+//     }
+// });
