@@ -2,9 +2,9 @@
 
 let currentWeatherData = null;
 let currentUnits = {
-    temperature: 'metric',
-    wind: 'metric',
-    precipitation: 'metric'
+    temperature: localStorage.getItem('unitTemp') || 'metric',
+    wind: localStorage.getItem('unitWind') || 'metric',
+    precipitation: localStorage.getItem('unitPrecip') || 'metric'
 };
 let selectedDayIndex = 0;
 
@@ -12,7 +12,9 @@ let selectedDayIndex = 0;
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedUnits();
     initializeEventListeners();
-    getWeather(52.52, 13.41); // Default: Berlin
+    getWeather(50.812, 19.113).then(() => {
+        document.getElementById('locationName').textContent = 'Częstochowa, Poland';
+    });
     applyUnits();
 });
 
@@ -189,7 +191,10 @@ function renderDailyForecast(data) {
 // 7. RENDER HOURLY FORECAST
 
 
-function renderHourlyForecast(selectedDayIndex, data) {
+function renderHourlyForecast(selectedDayIndex, data, updateDayLabel = true) {
+    const dayName = new Date(data.daily.time[selectedDayIndex]).toLocaleDateString('en-US', { weekday: 'long' });
+    document.getElementById('hourlyDaySelector').textContent = `${dayName} ↓`;
+
     const container = document.getElementById('hourlyForecastContainer');
     container.innerHTML = '';
 
@@ -247,8 +252,8 @@ function populateDayDropdown(data) {
 
         btn.addEventListener('click', () => {
             selectedDayIndex = index;
-            document.getElementById('dayText').textContent = dayName;
-            renderHourlyForecast(index, data);
+            document.getElementById('hourlyDaySelector').textContent = `${dayName} ↓`;
+            renderHourlyForecast(index, data, false); // don’t override label
             dayDropdown.classList.add('hidden');
         });
 
