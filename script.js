@@ -1,151 +1,241 @@
-//  WEATHER ICON MAPPING
+// ==========================================
+// WEATHER APP - COMPLETE JAVASCRIPT
+// ==========================================
+
+// ==========================================
+// 1. STATE & INITIALIZATION
+// ==========================================
+
+let currentWeatherData = null;
 let currentUnits = localStorage.getItem('weatherUnits') || 'metric';
-// Lookup table that connects Open-Meteo weather codes to your local icons
+let selectedDayIndex = 0;
+
+// Load units on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadSavedUnits();
+    initializeEventListeners();
+    getWeather(52.52, 13.41); // Default: Berlin
+    applyUnits();
+});
+
+// ==========================================
+// 2. WEATHER ICON MAPPING
+// ==========================================
+
 const weatherIcons = {
-    0: './assets/images/icon-sunny.webp',              // Clear sky
-    1: './assets/images/icon-partly-cloudy.webp',      // Mainly clear
-    2: './assets/images/icon-partly-cloudy.webp',      // Partly cloudy
-    3: './assets/images/icon-overcast.webp',           // Overcast
-    45: './assets/images/icon-fog.webp',               // Fog
-    48: './assets/images/icon-fog.webp',               // Depositing rime fog
-    51: './assets/images/icon-drizzle.webp',           // Light drizzle
-    53: './assets/images/icon-drizzle.webp',           // Moderate drizzle
-    55: './assets/images/icon-drizzle.webp',           // Dense drizzle
-    56: './assets/images/icon-drizzle.webp',           // Freezing drizzle
+    0: './assets/images/icon-sunny.webp',
+    1: './assets/images/icon-partly-cloudy.webp',
+    2: './assets/images/icon-partly-cloudy.webp',
+    3: './assets/images/icon-overcast.webp',
+    45: './assets/images/icon-fog.webp',
+    48: './assets/images/icon-fog.webp',
+    51: './assets/images/icon-drizzle.webp',
+    53: './assets/images/icon-drizzle.webp',
+    55: './assets/images/icon-drizzle.webp',
+    56: './assets/images/icon-drizzle.webp',
     57: './assets/images/icon-drizzle.webp',
-    61: './assets/images/icon-rain.webp',              // Slight rain
-    63: './assets/images/icon-rain.webp',              // Moderate rain
-    65: './assets/images/icon-rain.webp',              // Heavy rain
-    66: './assets/images/icon-rain.webp',              // Freezing rain
+    61: './assets/images/icon-rain.webp',
+    63: './assets/images/icon-rain.webp',
+    65: './assets/images/icon-rain.webp',
+    66: './assets/images/icon-rain.webp',
     67: './assets/images/icon-rain.webp',
-    71: './assets/images/icon-snow.webp',              // Slight snow
-    73: './assets/images/icon-snow.webp',              // Moderate snow
-    75: './assets/images/icon-snow.webp',              // Heavy snow
-    77: './assets/images/icon-snow.webp',              // Snow grains
-    80: './assets/images/icon-rain.webp',              // Slight rain showers
-    81: './assets/images/icon-rain.webp',              // Moderate rain showers
-    82: './assets/images/icon-rain.webp',              // Violent rain showers
-    85: './assets/images/icon-snow.webp',              // Slight snow showers
-    86: './assets/images/icon-snow.webp',              // Heavy snow showers
-    95: './assets/images/icon-storm.webp',             // Thunderstorm
-    96: './assets/images/icon-storm.webp',             // Thunderstorm with hail
-    99: './assets/images/icon-storm.webp',             // Thunderstorm with hail
+    71: './assets/images/icon-snow.webp',
+    73: './assets/images/icon-snow.webp',
+    75: './assets/images/icon-snow.webp',
+    77: './assets/images/icon-snow.webp',
+    80: './assets/images/icon-rain.webp',
+    81: './assets/images/icon-rain.webp',
+    82: './assets/images/icon-rain.webp',
+    85: './assets/images/icon-snow.webp',
+    86: './assets/images/icon-snow.webp',
+    95: './assets/images/icon-storm.webp',
+    96: './assets/images/icon-storm.webp',
+    99: './assets/images/icon-storm.webp',
 };
 
-// Helper to safely get the right icon
 function getWeatherIcon(code) {
     return weatherIcons[code] || './assets/images/icon-overcast.webp';
 }
 
+// ==========================================
+// 3. API CALLS
+// ==========================================
 
 async function getWeather(lat, long) {
     try {
         const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&daily=weathercode,temperature_2m_max,temperature_2m_min&hourly=temperature_2m&timezone=auto`
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current_weather=true&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,wind_speed_10m_max,relative_humidity_2m_max&hourly=temperature_2m&timezone=auto`
         );
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
+        currentWeatherData = data;
+        console.log(data);
+        
+        renderAllWeather(data);
         return data;
-        console.log('Raw weather data:', data);
     } catch (err) {
-        console.log('Error fetching weather', err);
+        console.error('Error fetching weather:', err);
     }
 }
-getWeather(52.52, 13.41).then(data => {
-    if (data) {
-        renderDailyForecast(data);
-        renderHourlyForecast(0, data);
-        populateDayDropdown(data);
-    }
-});
 
-//Render Daily forecast 
+// ==========================================
+// 4. RENDER ALL WEATHER DATA
+// ==========================================
+
+function renderAllWeather(data) {
+    updateCurrentWeather(data);
+    renderDailyForecast(data);
+    renderHourlyForecast(0, data);
+    populateDayDropdown(data);
+}
+
+// ==========================================
+// 5. UPDATE CURRENT WEATHER
+// ==========================================
+
+function updateCurrentWeather(data) {
+    const current = data.current_weather || {};
+    const daily = data.daily || {};
+
+    // Temperature
+    const tempC = current.temperature ?? 0;
+    document.getElementById('currentTemp').dataset.tempC = Math.round(tempC);
+    document.getElementById('currentTemp').textContent =
+        currentUnits === 'imperial'
+            ? `${Math.round(tempC * 9 / 5 + 32)}°F`
+            : `${Math.round(tempC)}°C`;
+
+    // Feels Like (approximation: Open-Meteo current doesn’t provide apparent temperature)
+    const feelsC = (daily.apparent_temperature_max && daily.apparent_temperature_max[0]) ?? tempC;
+    document.getElementById('feelsLike').dataset.tempC = Math.round(feelsC);
+    document.getElementById('feelsLike').textContent =
+        currentUnits === 'imperial'
+            ? `${Math.round(feelsC * 9 / 5 + 32)}°F`
+            : `${Math.round(feelsC)}°C`;
+
+    // Humidity
+    const humidity = (daily.relative_humidity_2m_max && daily.relative_humidity_2m_max[0]) ?? '-';
+    document.getElementById('humidity').textContent = `${humidity}%`;
+
+    // Wind Speed
+    const windKmh = current.windspeed ?? 0;
+    document.getElementById('windSpeed').dataset.windKmh = windKmh;
+    document.getElementById('windSpeed').textContent =
+        currentUnits === 'imperial'
+            ? `${Math.round(windKmh * 0.621371)} mph`
+            : `${Math.round(windKmh)} km/h`;
+
+    // Precipitation
+    const precipMm = (daily.precipitation_sum && daily.precipitation_sum[0]) ?? 0;
+    document.getElementById('precipitation').dataset.precipMm = precipMm;
+    document.getElementById('precipitation').textContent =
+        currentUnits === 'imperial'
+            ? `${(precipMm * 0.0393701).toFixed(2)} in`
+            : `${Math.round(precipMm)} mm`;
+
+    // Weather Icon
+    document.getElementById('currentWeatherIcon').src = getWeatherIcon(current.weathercode ?? 0);
+
+    // Date
+    const dateObj = daily.time ? new Date(daily.time[0]) : new Date();
+    document.getElementById('dateDisplay').textContent = dateObj.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+}
+
+
+
+// ==========================================
+// 6. RENDER DAILY FORECAST
+// ==========================================
+
 function renderDailyForecast(data) {
-    const container = document.querySelector('#dailyForecastContainer');
-    container.innerHTML = ''; // clear previous forecast
+    const container = document.getElementById('dailyForecastContainer');
+    container.innerHTML = '';
 
     const days = data.daily.time;
-    const codes = data.daily.weathercode;
+    const codes = data.daily.weather_code;
     const maxTemps = data.daily.temperature_2m_max;
     const minTemps = data.daily.temperature_2m_min;
 
     days.forEach((date, i) => {
         const card = document.createElement('div');
-        card.className = 'forecast-card p-4 rounded-2xl shadow bg-neutral-800 hover:bg-neutral-300 cursor-pointer flex flex-col items-center text-center';
-
+        card.className = 'bg-neutral-800 rounded-xl p-3 md:p-4 text-center hover:bg-neutral-700 transition-colors cursor-pointer border border-neutral-700 day-card';
+        card.dataset.dayIndex = i;
 
         const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' });
         const icon = getWeatherIcon(codes[i]);
 
         card.innerHTML = `
-  <p class="font-semibold">${dayName}</p>
-  <img src="${icon}" alt="Weather Icon" class="w-12 h-12 my-2" />
-  <p class="text-sm text-white flex gap-2">
-    <span data-temp-c="${Math.round(maxTemps[i])}">
-      ${currentUnits === 'imperial' ? Math.round(maxTemps[i] * 9 / 5 + 32) : Math.round(maxTemps[i])}°
-    </span>
-    <span data-temp-c="${Math.round(minTemps[i])}">
-      ${currentUnits === 'imperial' ? Math.round(minTemps[i] * 9 / 5 + 32) : Math.round(minTemps[i])}°
-    </span>
-  </p>`;
+            <p class="text-neutral-300 text-xs md:text-sm mb-2 font-medium">${dayName}</p>
+            <img src="${icon}" alt="Weather" class="w-8 h-8 mx-auto mb-2">
+            <div class="flex justify-between text-xs md:text-sm gap-1">
+                <span class="text-neutral-300 high-temp" data-temp-c="${Math.round(maxTemps[i])}">${Math.round(maxTemps[i])}°</span>
+                <span class="text-neutral-600 low-temp" data-temp-c="${Math.round(minTemps[i])}">${Math.round(minTemps[i])}°</span>
+            </div>
+        `;
 
-        // click → trigger hourly forecast display
         card.addEventListener('click', () => {
-            renderHourlyForecast(i, data); // you’ll build this next step
+            selectedDayIndex = i;
+            renderHourlyForecast(i, data);
+            document.getElementById('hourlyDaySelector').textContent = dayName;
         });
 
         container.appendChild(card);
     });
 }
 
-
-// RENDER HOURLY FORECAST
-//    - Get hourly data for selected day
-//    - Create list items with: time (12-hour format), temperature
-//    - Append to #hourlyForecastContainer
-//    - Update when day changes
+// ==========================================
+// 7. RENDER HOURLY FORECAST
+// ==========================================
 
 function renderHourlyForecast(selectedDayIndex, data) {
-    const container = document.querySelector('#hourlyForecastContainer');
-    container.innerHTML = ''; // clear old data
+    const container = document.getElementById('hourlyForecastContainer');
+    container.innerHTML = '';
 
     const allTimes = data.hourly.time;
     const allTemps = data.hourly.temperature_2m;
-
-    // Find date for the selected day
+    const allCodes = data.hourly.weathercode || []; // include this in your API call
     const targetDate = data.daily.time[selectedDayIndex];
 
-    // Filter only hours belonging to that date
     const hours = allTimes
-        .map((t, i) => ({ time: t, temp: allTemps[i] }))
+        .map((t, i) => ({ time: t, temp: allTemps[i], code: allCodes[i] }))
         .filter(entry => entry.time.startsWith(targetDate));
 
-    // Build the list
     hours.forEach(hour => {
-        const li = document.createElement('li');
-        li.className = 'flex justify-between p-2 border-b border-gray-200';
+        const div = document.createElement('div');
+        div.className =
+            'flex items-center justify-between p-2 md:p-3 hover:bg-neutral-700 rounded-lg transition-colors';
 
-        // Convert time string → Date → 12-hour format
         const hourFormatted = new Date(hour.time).toLocaleTimeString('en-US', {
             hour: 'numeric',
-            hour12: true
+            hour12: true,
         });
 
-        li.innerHTML = `
-            <span>${hourFormatted}</span>
-            <span data-temp-c="${Math.round(hour.temp)}">${Math.round(hour.temp)}°</span>
-            `;
+        const icon = getWeatherIcon(hour.code);
 
-        container.appendChild(li);
+        div.innerHTML = `
+            <div class="flex items-center gap-2">
+                <img src="${icon}" alt="icon" class="w-6 h-6">
+                <span class="text-neutral-400 text-xs md:text-sm font-medium">${hourFormatted}</span>
+            </div>
+            <span class="heading text-sm md:text-base font-bold" data-temp-c="${Math.round(hour.temp)}">
+                ${Math.round(hour.temp)}°
+            </span>
+        `;
+
+        container.appendChild(div);
     });
 }
 
-//POPULATE DAY SELECTION DROPDOWN
-//    - Create 7 day buttons (Monday - Sunday)
-//    - Append to #daySelectionDropdown
-//    - Add click handlers to update #hourlyDaySelector text
-//    - Add click handlers to re-render hourly forecast
-const dayDropdown = document.getElementById('daySelectionDropdown');
+
+
+// ==========================================
+// 8. POPULATE DAY DROPDOWN
+// ==========================================
 
 function populateDayDropdown(data) {
     const dayDropdown = document.getElementById('daySelectionDropdown');
@@ -157,14 +247,12 @@ function populateDayDropdown(data) {
         const btn = document.createElement('button');
         btn.textContent = dayName;
         btn.dataset.dayIndex = index;
-        btn.className = 'w-full text-left px-4 py-2 bg-neutral-800 text-neutral-0 rounded hover:bg-neutral-700 transition-colors text-sm';
+        btn.className = 'block w-full text-left px-4 py-2 text-neutral-300 hover:bg-neutral-600 text-sm transition-colors';
 
         btn.addEventListener('click', () => {
-            // Update selector text
+            selectedDayIndex = index;
             document.getElementById('hourlyDaySelector').textContent = dayName;
-            // Render hourly forecast for this day
             renderHourlyForecast(index, data);
-            // Hide dropdown
             dayDropdown.classList.add('hidden');
         });
 
@@ -172,47 +260,29 @@ function populateDayDropdown(data) {
     });
 }
 
-// 5. SEARCH FUNCTIONALITY
-//    - Listen to #searchInput for user typing
-//    - Make API call to geocode location names
-//    - Show results in #searchResults dropdown
-//    - Create clickable location items
-//    - On selection: fetch weather for that location, update all sections
-// Global declaration at the top of your script
+// ==========================================
+// 9. SEARCH FUNCTIONALITY
+// ==========================================
 
-
-// Then the dropdown listener can use it
-const unitsDropdown = document.getElementById('unitsDropdown');
-document.querySelectorAll('#unitsDropdown button').forEach(btn => {
-    btn.addEventListener('click', () => {
-        currentUnits = btn.dataset.unit; // 'metric' or 'imperial'
-        localStorage.setItem('weatherUnits', currentUnits);
-        applyUnits(); // update displayed temps
-        unitsDropdown.classList.add('hidden');
-    });
-});
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
+const searchBtn = document.getElementById('searchBtn');
+let searchTimeout;
 
-let searchTimeout; // for debouncing
+searchBtn.addEventListener('click', performSearch);
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') performSearch();
+});
 
 searchInput.addEventListener('input', () => {
     const query = searchInput.value.trim();
-
-    // Clear previous timeout
     clearTimeout(searchTimeout);
 
     if (!query) {
-        searchResults.classList.remove('hidden');
-        searchResults.innerHTML = `
-        <p class="px-4 py-2 text-red-500 border border-red-500 rounded bg-red-100 text-sm">
-            Please type a location to search
-        </p>`;
+        searchResults.classList.add('hidden');
         return;
     }
 
-
-    // Debounce to avoid too many API calls
     searchTimeout = setTimeout(async () => {
         try {
             const response = await fetch(
@@ -221,7 +291,6 @@ searchInput.addEventListener('input', () => {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
 
-            // Clear old results
             searchResults.innerHTML = '';
 
             if (!data.results || data.results.length === 0) {
@@ -230,42 +299,13 @@ searchInput.addEventListener('input', () => {
                 return;
             }
 
-            // Loop through results and create clickable items
             data.results.forEach(loc => {
                 const item = document.createElement('div');
-                item.className = 'px-4 py-2 cursor-pointer hover:bg-neutral-700 text-neutral-0';
-                item.textContent = `${loc.name}, ${loc.country}`;
+                item.className = 'px-4 py-2 cursor-pointer hover:bg-neutral-700 text-neutral-0 text-sm border-b border-neutral-700';
+                item.textContent = `${loc.name}${loc.admin1 ? ', ' + loc.admin1 : ''}, ${loc.country}`;
 
                 item.addEventListener('click', () => {
-                    searchInput.value = `${loc.name}, ${loc.country}`;
-                    searchResults.classList.add('hidden');
-                    searchResults.innerHTML = '';
-
-                    getWeather(loc.latitude, loc.longitude).then(weatherData => {
-                        if (weatherData) {
-                            renderDailyForecast(weatherData);
-                            renderHourlyForecast(0, weatherData);
-                            populateDayDropdown(weatherData);
-
-                            // Update current weather card
-                            const currentCode = weatherData.daily.weathercode[0];
-                            const currentTemp = weatherData.daily.temperature_2m_max[0];
-                            const today = new Date(weatherData.daily.time[0]);
-
-                            document.getElementById('locationName').textContent = `${loc.name}, ${loc.country}`;
-                            document.getElementById('currentTemp').textContent = `${Math.round(currentTemp)}°`;
-                            document.getElementById('currentWeatherIcon').src = getWeatherIcon(currentCode);
-                            document.getElementById('dateDisplay').textContent = today.toLocaleDateString('en-US', {
-                                weekday: 'long',
-                                month: 'short',
-                                day: 'numeric'
-                            });
-                            document.getElementById('currentTemp').dataset.tempC = Math.round(currentTemp);
-                            document.getElementById('currentTemp').textContent = currentUnits === 'imperial'
-                                ? `${Math.round(currentTemp * 9 / 5 + 32)}°F`
-                                : `${Math.round(currentTemp)}°C`;
-                        }
-                    });
+                    selectLocation(loc);
                 });
 
                 searchResults.appendChild(item);
@@ -273,50 +313,116 @@ searchInput.addEventListener('input', () => {
 
             searchResults.classList.remove('hidden');
         } catch (err) {
-            console.log('Error fetching locations', err);
+            console.error('Error fetching locations:', err);
         }
-    }, 300); // 300ms debounce
+    }, 300);
 });
 
-// Hide search results when clicking outside
-document.addEventListener('click', (e) => {
-    if (!searchResults.contains(e.target) && !searchInput.contains(e.target)) {
-        searchResults.classList.add('hidden');
+function performSearch() {
+    const query = searchInput.value.trim();
+    if (!query) return;
+    // Search is already triggered by input event, just make sure dropdown is shown
+    searchResults.classList.remove('hidden');
+}
+
+function selectLocation(loc) {
+    searchInput.value = `${loc.name}, ${loc.country}`;
+    searchResults.classList.add('hidden');
+    document.getElementById('locationName').textContent = `${loc.name}, ${loc.country}`;
+    getWeather(loc.latitude, loc.longitude);
+}
+
+// ==========================================
+// 10. UNITS & CONVERSIONS
+// ==========================================
+
+function loadSavedUnits() {
+    const saved = localStorage.getItem('weatherUnits');
+    if (saved) {
+        currentUnits = saved;
+        updateUnitsUI();
     }
-});
+}
 
+function updateUnitsUI() {
+    // Update radio buttons
+    if (currentUnits === 'imperial') {
+        document.querySelector('input[name="temperature"][value="fahrenheit"]').checked = true;
+        document.querySelector('input[name="wind"][value="mph"]').checked = true;
+        document.querySelector('input[name="precipitation"][value="inches"]').checked = true;
+    } else {
+        document.querySelector('input[name="temperature"][value="celsius"]').checked = true;
+        document.querySelector('input[name="wind"][value="kmh"]').checked = true;
+        document.querySelector('input[name="precipitation"][value="mm"]').checked = true;
+    }
+}
 
-
-
-
-
-// 6. LOCAL STORAGE FOR UNITS
-//    - Save selected units to localStorage when changed
-//    - Load units on page load
-//    - Apply unit conversions to all displayed values
-//    - Update all temperature, wind, and precipitation displays
 function applyUnits() {
+    applyTemperatureUnits();
+    applyWindUnits();
+    applyPrecipitationUnits();
+}
+
+function applyTemperatureUnits() {
     const tempEls = document.querySelectorAll('[data-temp-c]');
     tempEls.forEach(el => {
         const valueC = parseFloat(el.dataset.tempC);
-        el.textContent = currentUnits === 'imperial'
-            ? `${Math.round(valueC * 9 / 5 + 32)}°F`
-            : `${Math.round(valueC)}°C`;
+        if (currentUnits === 'imperial') {
+            const valueF = Math.round(valueC * 9 / 5 + 32);
+            el.textContent = `${valueF}°`;
+        } else {
+            el.textContent = `${Math.round(valueC)}°`;
+        }
     });
 }
 
+function applyWindUnits() {
+    const windEls = document.querySelectorAll('[data-wind-kmh]');
+    windEls.forEach(el => {
+        const valueKmh = parseFloat(el.dataset.windKmh);
+        if (currentUnits === 'imperial') {
+            const valueMph = Math.round(valueKmh * 0.621371);
+            el.textContent = `${valueMph} mph`;
+        } else {
+            el.textContent = `${Math.round(valueKmh)} km/h`;
+        }
+    });
+}
 
-// 7. UNIT CONVERSIONS
-//    - Celsius to Fahrenheit: (C × 9/5) + 32
-//    - km/h to mph: km/h × 0.621371
-//    - mm to inches: mm × 0.0393701
-//    - Call conversion functions when units change
-//    - Re-render affected DOM elements
+function applyPrecipitationUnits() {
+    const precipEls = document.querySelectorAll('[data-precip-mm]');
+    precipEls.forEach(el => {
+        const valueMm = parseFloat(el.dataset.precipMm);
+        if (currentUnits === 'imperial') {
+            const valueIn = (valueMm * 0.0393701).toFixed(2);
+            el.textContent = `${valueIn} in`;
+        } else {
+            el.textContent = `${Math.round(valueMm)} mm`;
+        }
+    });
+}
 
+// ==========================================
+// 11. EVENT LISTENERS - UNITS DROPDOWN
+// ==========================================
 
+const unitsBtn = document.getElementById('unitsBtn');
+const unitsDropdown = document.getElementById('unitsDropdown');
 
-unitsBtn.addEventListener('click', () => {
+unitsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
     unitsDropdown.classList.toggle('hidden');
+});
+
+// Radio buttons for units
+document.querySelectorAll('.unit-radio').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        if (e.target.name === 'temperature') {
+            currentUnits = e.target.value === 'fahrenheit' ? 'imperial' : 'metric';
+        }
+        localStorage.setItem('weatherUnits', currentUnits);
+        applyUnits();
+    });
 });
 
 document.addEventListener('click', (e) => {
@@ -325,7 +431,10 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// 9. HOURLY DAY SELECTOR TOGGLE
+// ==========================================
+// 12. EVENT LISTENERS - HOURLY DAY SELECTOR
+// ==========================================
+
 const hourlyDaySelector = document.getElementById('hourlyDaySelector');
 const daySelectionDropdown = document.getElementById('daySelectionDropdown');
 
@@ -340,18 +449,21 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// // 10. SEARCH RESULTS TOGGLE
-// const searchInput = document.getElementById('searchInput');
-// const searchResults = document.getElementById('searchResults');
+// ==========================================
+// 13. CLOSE SEARCH RESULTS ON CLICK OUTSIDE
+// ==========================================
 
-// searchInput.addEventListener('focus', () => {
-//     if (searchInput.value.length > 0) {
-//         searchResults.classList.remove('hidden');
-//     }
-// });
+document.addEventListener('click', (e) => {
+    if (!searchResults.contains(e.target) && !searchInput.contains(e.target)) {
+        searchResults.classList.add('hidden');
+    }
+});
 
-// document.addEventListener('click', (e) => {
-//     if (!searchResults.contains(e.target) && !searchInput.contains(e.target)) {
-//         searchResults.classList.add('hidden');
-//     }
-// });
+// ==========================================
+// 14. INITIALIZE ALL EVENT LISTENERS
+// ==========================================
+
+function initializeEventListeners() {
+    // All event listeners are set up above
+    // This function exists for organization and future additions
+}
