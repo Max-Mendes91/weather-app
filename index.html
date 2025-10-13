@@ -151,23 +151,25 @@
     </h1>
 
     <!-- Search Bar -->
-    <div class="mb-6 md:mb-8 relative flex justify-center">
-      <div class="flex gap-2 w-full max-w-2xl">
-        <div class="relative flex-1">
-          <input type="text" id="searchInput" placeholder="Search for a place..."
-            class="w-full bg-neutral-800 text-neutral-0 placeholder-neutral-400 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-neutral-700">
-          <!-- Search Results Dropdown -->
-          <div id="searchResults"
-            class="hidden absolute top-full left-0 right-0 mt-2 bg-neutral-800 rounded-lg shadow-xl z-50 border border-neutral-700 max-h-64 overflow-y-auto">
-            <!-- Results will be rendered here by JavaScript -->
-          </div>
-        </div>
-        <button id="searchBtn"
-          class="bg-blue-500 hover:bg-blue-700 text-neutral-0 px-6 py-3 rounded-lg font-medium transition-colors text-sm md:text-base">
-          Search
-        </button>
+   <div class="mb-6 md:mb-8 flex justify-center">
+  <div class="flex flex-col md:flex-row gap-2 w-full max-w-2xl">
+    <div class="relative flex-1">
+      <img src="./assets/images/icon-search.svg" alt="Search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search for a place..."
+        class="w-full bg-neutral-800 text-neutral-0 placeholder-neutral-400 pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-neutral-700"
+      />
+      <div id="searchResults" class="hidden absolute top-full left-0 right-0 mt-2 bg-neutral-800 rounded-lg shadow-xl z-50 border border-neutral-700 max-h-64 overflow-y-auto">
+        <!-- Results rendered by JS -->
       </div>
     </div>
+    <button id="searchBtn" class="bg-blue-500 hover:bg-blue-700 text-neutral-0 px-6 py-3 rounded-lg font-medium transition-colors text-sm md:text-base">
+      Search
+    </button>
+  </div>
+</div>
 
     <!-- Main Grid: Desktop 3 cols, Mobile stacked -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
@@ -286,4 +288,5 @@
     </div>
   </div>
 </body>
+
 </html>
