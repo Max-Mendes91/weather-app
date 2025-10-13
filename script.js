@@ -12,8 +12,11 @@ let selectedDayIndex = 0;
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedUnits();
     initializeEventListeners();
-    getWeather(50.812, 19.113).then(() => {
+    getWeather(50.812, 19.113).then((data) => {
         document.getElementById('locationName').textContent = 'Częstochowa, Poland';
+        renderDailyForecast(data);   // now #dayText exists
+        renderHourlyForecast(0, data);
+        
     });
     applyUnits();
 });
@@ -91,8 +94,6 @@ function renderAllWeather(data) {
 
 
 // 5. UPDATE CURRENT WEATHER
-
-
 function updateCurrentWeather(data) {
     const current = data.current_weather || {};
     const daily = data.daily || {};
@@ -155,11 +156,14 @@ function renderDailyForecast(data) {
     const container = document.getElementById('dailyForecastContainer');
     container.innerHTML = '';
 
+    const dayTextEl = document.getElementById('dayText');
+    if (dayTextEl) dayTextEl.textContent = new Date(data.daily.time[0]).toLocaleDateString('en-US', { weekday: 'long' });
+
     const days = data.daily.time;
     const codes = data.daily.weather_code;
     const maxTemps = data.daily.temperature_2m_max;
     const minTemps = data.daily.temperature_2m_min;
-
+    
     days.forEach((date, i) => {
         const card = document.createElement('div');
         card.className = 'bg-neutral-800  rounded-xl p-3 md:p-4 text-center hover:bg-neutral-700 transition-colors cursor-pointer border border-neutral-700 day-card';
@@ -180,7 +184,7 @@ function renderDailyForecast(data) {
         card.addEventListener('click', () => {
             selectedDayIndex = i;
             renderHourlyForecast(i, data);
-            document.getElementById('dayText').textContent = dayName;
+            // dayTextEl.textContent = dayName;
         });
 
         container.appendChild(card);
@@ -336,26 +340,34 @@ function selectLocation(loc) {
 
 // 10. UNITS & CONVERSIONS
 
-
 function loadSavedUnits() {
-    const saved = localStorage.getItem('weatherUnits');
-    if (saved) {
-        currentUnits = saved;
-        updateUnitsUI();
-    }
+    const savedTemp = localStorage.getItem('unitTemp');
+    const savedWind = localStorage.getItem('unitWind');
+    const savedPrecip = localStorage.getItem('unitPrecip');
+
+    if (savedTemp) currentUnits.temperature = savedTemp;
+    if (savedWind) currentUnits.wind = savedWind;
+    if (savedPrecip) currentUnits.precipitation = savedPrecip;
+
+    updateUnitsUI();
 }
 
+
 function updateUnitsUI() {
-    // Update radio buttons
-    if (currentUnits.temperature === 'fahrenheit') {
-        document.querySelector('input[name="temperature"][value="fahrenheit"]').checked = true;
-        document.querySelector('input[name="wind"][value="mph"]').checked = true;
-        document.querySelector('input[name="precipitation"][value="inches"]').checked = true;
-    } else {
-        document.querySelector('input[name="temperature"][value="celsius"]').checked = true;
-        document.querySelector('input[name="wind"][value="kmh"]').checked = true;
-        document.querySelector('input[name="precipitation"][value="mm"]').checked = true;
-    }
+    document.querySelector('input[name="temperature"][value="fahrenheit"]').checked =
+        currentUnits.temperature === 'fahrenheit';
+    document.querySelector('input[name="temperature"][value="celsius"]').checked =
+        currentUnits.temperature !== 'fahrenheit';
+
+    document.querySelector('input[name="wind"][value="mph"]').checked =
+        currentUnits.wind === 'mph';
+    document.querySelector('input[name="wind"][value="kmh"]').checked =
+        currentUnits.wind !== 'mph';
+
+    document.querySelector('input[name="precipitation"][value="inches"]').checked =
+        currentUnits.precipitation === 'inches';
+    document.querySelector('input[name="precipitation"][value="mm"]').checked =
+        currentUnits.precipitation !== 'inches';
 }
 
 function applyUnits() {
@@ -365,43 +377,32 @@ function applyUnits() {
 }
 
 function applyTemperatureUnits() {
-    const tempEls = document.querySelectorAll('[data-temp-c]');
-    tempEls.forEach(el => {
-        const valueC = parseFloat(el.dataset.tempC);
-        if (currentUnits === 'imperial') {
-            const valueF = Math.round(valueC * 9 / 5 + 32);
-            el.textContent = `${valueF}°`;
-        } else {
-            el.textContent = `${Math.round(valueC)}°`;
-        }
+    document.querySelectorAll('[data-temp-c]').forEach(el => {
+        const c = parseFloat(el.dataset.tempC);
+        el.textContent = currentUnits.temperature === 'fahrenheit'
+            ? `${Math.round(c * 9 / 5 + 32)}°F`
+            : `${Math.round(c)}°C`;
     });
 }
 
 function applyWindUnits() {
-    const windEls = document.querySelectorAll('[data-wind-kmh]');
-    windEls.forEach(el => {
-        const valueKmh = parseFloat(el.dataset.windKmh);
-        if (currentUnits === 'imperial') {
-            const valueMph = Math.round(valueKmh * 0.621371);
-            el.textContent = `${valueMph} mph`;
-        } else {
-            el.textContent = `${Math.round(valueKmh)} km/h`;
-        }
+    document.querySelectorAll('[data-wind-kmh]').forEach(el => {
+        const kmh = parseFloat(el.dataset.windKmh);
+        el.textContent = currentUnits.wind === 'mph'
+            ? `${Math.round(kmh * 0.621371)} mph`
+            : `${Math.round(kmh)} km/h`;
     });
 }
 
 function applyPrecipitationUnits() {
-    const precipEls = document.querySelectorAll('[data-precip-mm]');
-    precipEls.forEach(el => {
-        const valueMm = parseFloat(el.dataset.precipMm);
-        if (currentUnits === 'imperial') {
-            const valueIn = (valueMm * 0.0393701).toFixed(2);
-            el.textContent = `${valueIn} in`;
-        } else {
-            el.textContent = `${Math.round(valueMm)} mm`;
-        }
+    document.querySelectorAll('[data-precip-mm]').forEach(el => {
+        const mm = parseFloat(el.dataset.precipMm);
+        el.textContent = currentUnits.precipitation === 'inches'
+            ? `${(mm * 0.0393701).toFixed(2)} in`
+            : `${Math.round(mm)} mm`;
     });
 }
+
 
 
 // 11. EVENT LISTENERS - UNITS DROPDOWN
