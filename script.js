@@ -1,5 +1,5 @@
 //  WEATHER ICON MAPPING
-
+let currentUnits = localStorage.getItem('weatherUnits') || 'metric';
 // Lookup table that connects Open-Meteo weather codes to your local icons
 const weatherIcons = {
     0: './assets/images/icon-sunny.webp',              // Clear sky
@@ -60,13 +60,12 @@ getWeather(52.52, 13.41).then(data => {
 });
 
 //Render Daily forecast 
-
 function renderDailyForecast(data) {
     const container = document.querySelector('#dailyForecastContainer');
     container.innerHTML = ''; // clear previous forecast
 
-    const days = data.daily.time;               // array of dates
-    const codes = data.daily.weathercode;       // array of weather codes
+    const days = data.daily.time;
+    const codes = data.daily.weathercode;
     const maxTemps = data.daily.temperature_2m_max;
     const minTemps = data.daily.temperature_2m_min;
 
@@ -79,12 +78,16 @@ function renderDailyForecast(data) {
         const icon = getWeatherIcon(codes[i]);
 
         card.innerHTML = `
-            <p class="font-semibold">${dayName}</p>
-            <img src="${icon}" alt="Weather Icon" class="w-12 h-12 my-2" />
-            <p class="text-sm text-white flex gap-2">
-            <span>${Math.round(maxTemps[i])}°</span>
-            <span>${Math.round(minTemps[i])}°</span>
-            </p>`;
+  <p class="font-semibold">${dayName}</p>
+  <img src="${icon}" alt="Weather Icon" class="w-12 h-12 my-2" />
+  <p class="text-sm text-white flex gap-2">
+    <span data-temp-c="${Math.round(maxTemps[i])}">
+      ${currentUnits === 'imperial' ? Math.round(maxTemps[i] * 9 / 5 + 32) : Math.round(maxTemps[i])}°
+    </span>
+    <span data-temp-c="${Math.round(minTemps[i])}">
+      ${currentUnits === 'imperial' ? Math.round(minTemps[i] * 9 / 5 + 32) : Math.round(minTemps[i])}°
+    </span>
+  </p>`;
 
         // click → trigger hourly forecast display
         card.addEventListener('click', () => {
@@ -130,8 +133,8 @@ function renderHourlyForecast(selectedDayIndex, data) {
 
         li.innerHTML = `
             <span>${hourFormatted}</span>
-            <span>${Math.round(hour.temp)}°</span>
-        `;
+            <span data-temp-c="${Math.round(hour.temp)}">${Math.round(hour.temp)}°</span>
+            `;
 
         container.appendChild(li);
     });
@@ -175,7 +178,19 @@ function populateDayDropdown(data) {
 //    - Show results in #searchResults dropdown
 //    - Create clickable location items
 //    - On selection: fetch weather for that location, update all sections
+// Global declaration at the top of your script
 
+
+// Then the dropdown listener can use it
+const unitsDropdown = document.getElementById('unitsDropdown');
+document.querySelectorAll('#unitsDropdown button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        currentUnits = btn.dataset.unit; // 'metric' or 'imperial'
+        localStorage.setItem('weatherUnits', currentUnits);
+        applyUnits(); // update displayed temps
+        unitsDropdown.classList.add('hidden');
+    });
+});
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
 
@@ -195,6 +210,7 @@ searchInput.addEventListener('input', () => {
         </p>`;
         return;
     }
+
 
     // Debounce to avoid too many API calls
     searchTimeout = setTimeout(async () => {
@@ -244,6 +260,10 @@ searchInput.addEventListener('input', () => {
                                 month: 'short',
                                 day: 'numeric'
                             });
+                            document.getElementById('currentTemp').dataset.tempC = Math.round(currentTemp);
+                            document.getElementById('currentTemp').textContent = currentUnits === 'imperial'
+                                ? `${Math.round(currentTemp * 9 / 5 + 32)}°F`
+                                : `${Math.round(currentTemp)}°C`;
                         }
                     });
                 });
@@ -275,6 +295,16 @@ document.addEventListener('click', (e) => {
 //    - Load units on page load
 //    - Apply unit conversions to all displayed values
 //    - Update all temperature, wind, and precipitation displays
+function applyUnits() {
+    const tempEls = document.querySelectorAll('[data-temp-c]');
+    tempEls.forEach(el => {
+        const valueC = parseFloat(el.dataset.tempC);
+        el.textContent = currentUnits === 'imperial'
+            ? `${Math.round(valueC * 9 / 5 + 32)}°F`
+            : `${Math.round(valueC)}°C`;
+    });
+}
+
 
 // 7. UNIT CONVERSIONS
 //    - Celsius to Fahrenheit: (C × 9/5) + 32
@@ -283,9 +313,7 @@ document.addEventListener('click', (e) => {
 //    - Call conversion functions when units change
 //    - Re-render affected DOM elements
 
-// 8. UNITS DROPDOWN TOGGLE
-const unitsBtn = document.getElementById('unitsBtn');
-const unitsDropdown = document.getElementById('unitsDropdown');
+
 
 unitsBtn.addEventListener('click', () => {
     unitsDropdown.classList.toggle('hidden');
