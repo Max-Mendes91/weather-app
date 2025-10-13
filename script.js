@@ -1,10 +1,4 @@
-// ==========================================
-// WEATHER APP - COMPLETE JAVASCRIPT
-// ==========================================
-
-// ==========================================
 // 1. STATE & INITIALIZATION
-// ==========================================
 
 let currentWeatherData = null;
 let currentUnits = localStorage.getItem('weatherUnits') || 'metric';
@@ -18,9 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     applyUnits();
 });
 
-// ==========================================
+
 // 2. WEATHER ICON MAPPING
-// ==========================================
+
 
 const weatherIcons = {
     0: './assets/images/icon-sunny.webp',
@@ -57,20 +51,19 @@ function getWeatherIcon(code) {
     return weatherIcons[code] || './assets/images/icon-overcast.webp';
 }
 
-// ==========================================
+
 // 3. API CALLS
-// ==========================================
+
 
 async function getWeather(lat, long) {
     try {
         const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current_weather=true&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,wind_speed_10m_max,relative_humidity_2m_max&hourly=temperature_2m&timezone=auto`
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current_weather=true&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,wind_speed_10m_max,relative_humidity_2m_max&hourly=temperature_2m,weathercode&timezone=auto`
         );
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         currentWeatherData = data;
-        console.log(data);
-        
+
         renderAllWeather(data);
         return data;
     } catch (err) {
@@ -78,9 +71,10 @@ async function getWeather(lat, long) {
     }
 }
 
-// ==========================================
+
+
 // 4. RENDER ALL WEATHER DATA
-// ==========================================
+
 
 function renderAllWeather(data) {
     updateCurrentWeather(data);
@@ -89,9 +83,9 @@ function renderAllWeather(data) {
     populateDayDropdown(data);
 }
 
-// ==========================================
+
 // 5. UPDATE CURRENT WEATHER
-// ==========================================
+
 
 function updateCurrentWeather(data) {
     const current = data.current_weather || {};
@@ -148,9 +142,9 @@ function updateCurrentWeather(data) {
 
 
 
-// ==========================================
+
 // 6. RENDER DAILY FORECAST
-// ==========================================
+
 
 function renderDailyForecast(data) {
     const container = document.getElementById('dailyForecastContainer');
@@ -188,9 +182,9 @@ function renderDailyForecast(data) {
     });
 }
 
-// ==========================================
+
 // 7. RENDER HOURLY FORECAST
-// ==========================================
+
 
 function renderHourlyForecast(selectedDayIndex, data) {
     const container = document.getElementById('hourlyForecastContainer');
@@ -233,9 +227,9 @@ function renderHourlyForecast(selectedDayIndex, data) {
 
 
 
-// ==========================================
+
 // 8. POPULATE DAY DROPDOWN
-// ==========================================
+
 
 function populateDayDropdown(data) {
     const dayDropdown = document.getElementById('daySelectionDropdown');
@@ -260,9 +254,8 @@ function populateDayDropdown(data) {
     });
 }
 
-// ==========================================
+
 // 9. SEARCH FUNCTIONALITY
-// ==========================================
 
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
@@ -332,9 +325,9 @@ function selectLocation(loc) {
     getWeather(loc.latitude, loc.longitude);
 }
 
-// ==========================================
+
 // 10. UNITS & CONVERSIONS
-// ==========================================
+
 
 function loadSavedUnits() {
     const saved = localStorage.getItem('weatherUnits');
@@ -402,9 +395,9 @@ function applyPrecipitationUnits() {
     });
 }
 
-// ==========================================
+
 // 11. EVENT LISTENERS - UNITS DROPDOWN
-// ==========================================
+
 
 const unitsBtn = document.getElementById('unitsBtn');
 const unitsDropdown = document.getElementById('unitsDropdown');
@@ -431,10 +424,8 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ==========================================
-// 12. EVENT LISTENERS - HOURLY DAY SELECTOR
-// ==========================================
 
+// 12. EVENT LISTENERS - HOURLY DAY SELECTOR
 const hourlyDaySelector = document.getElementById('hourlyDaySelector');
 const daySelectionDropdown = document.getElementById('daySelectionDropdown');
 
@@ -449,20 +440,16 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ==========================================
-// 13. CLOSE SEARCH RESULTS ON CLICK OUTSIDE
-// ==========================================
 
+// 13. CLOSE SEARCH RESULTS ON CLICK OUTSIDE
 document.addEventListener('click', (e) => {
     if (!searchResults.contains(e.target) && !searchInput.contains(e.target)) {
         searchResults.classList.add('hidden');
     }
 });
 
-// ==========================================
-// 14. INITIALIZE ALL EVENT LISTENERS
-// ==========================================
 
+// 14. INITIALIZE ALL EVENT LISTENERS
 function initializeEventListeners() {
     // All event listeners are set up above
     // This function exists for organization and future additions
