@@ -1,7 +1,11 @@
 // 1. STATE & INITIALIZATION
 
 let currentWeatherData = null;
-let currentUnits = localStorage.getItem('weatherUnits') || 'metric';
+let currentUnits = {
+    temperature: 'metric',
+    wind: 'metric',
+    precipitation: 'metric'
+};
 let selectedDayIndex = 0;
 
 // Load units on page load
@@ -145,7 +149,6 @@ function updateCurrentWeather(data) {
 
 // 6. RENDER DAILY FORECAST
 
-
 function renderDailyForecast(data) {
     const container = document.getElementById('dailyForecastContainer');
     container.innerHTML = '';
@@ -157,7 +160,7 @@ function renderDailyForecast(data) {
 
     days.forEach((date, i) => {
         const card = document.createElement('div');
-        card.className = 'bg-neutral-800 rounded-xl p-3 md:p-4 text-center hover:bg-neutral-700 transition-colors cursor-pointer border border-neutral-700 day-card';
+        card.className = 'bg-neutral-800  rounded-xl p-3 md:p-4 text-center hover:bg-neutral-700 transition-colors cursor-pointer border border-neutral-700 day-card';
         card.dataset.dayIndex = i;
 
         const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' });
@@ -167,15 +170,15 @@ function renderDailyForecast(data) {
             <p class="text-neutral-300 text-xs md:text-sm mb-2 font-medium">${dayName}</p>
             <img src="${icon}" alt="Weather" class="w-8 h-8 mx-auto mb-2">
             <div class="flex justify-between text-xs md:text-sm gap-1">
-                <span class="text-neutral-300 high-temp" data-temp-c="${Math.round(maxTemps[i])}">${Math.round(maxTemps[i])}°</span>
-                <span class="text-neutral-600 low-temp" data-temp-c="${Math.round(minTemps[i])}">${Math.round(minTemps[i])}°</span>
+                <span class="text-neutral-0 high-temp" data-temp-c="${Math.round(maxTemps[i])}">${Math.round(maxTemps[i])}°</span>
+                <span class="text-neutral-0 low-temp" data-temp-c="${Math.round(minTemps[i])}">${Math.round(minTemps[i])}°</span>
             </div>
         `;
 
         card.addEventListener('click', () => {
             selectedDayIndex = i;
             renderHourlyForecast(i, data);
-            document.getElementById('hourlyDaySelector').textContent = dayName;
+            document.getElementById('dayText').textContent = dayName;
         });
 
         container.appendChild(card);
@@ -201,8 +204,7 @@ function renderHourlyForecast(selectedDayIndex, data) {
 
     hours.forEach(hour => {
         const div = document.createElement('div');
-        div.className =
-            'flex items-center justify-between p-2 md:p-3 hover:bg-neutral-700 rounded-lg transition-colors';
+        div.className = 'bg-neutral-700 p-2 md:p-3 rounded-lg hover:bg-neutral-600 transition-colors flex items-center justify-between';
 
         const hourFormatted = new Date(hour.time).toLocaleTimeString('en-US', {
             hour: 'numeric',
@@ -245,7 +247,7 @@ function populateDayDropdown(data) {
 
         btn.addEventListener('click', () => {
             selectedDayIndex = index;
-            document.getElementById('hourlyDaySelector').textContent = dayName;
+            document.getElementById('dayText').textContent = dayName;
             renderHourlyForecast(index, data);
             dayDropdown.classList.add('hidden');
         });
@@ -253,6 +255,7 @@ function populateDayDropdown(data) {
         dayDropdown.appendChild(btn);
     });
 }
+
 
 
 // 9. SEARCH FUNCTIONALITY
@@ -339,7 +342,7 @@ function loadSavedUnits() {
 
 function updateUnitsUI() {
     // Update radio buttons
-    if (currentUnits === 'imperial') {
+    if (currentUnits.temperature === 'fahrenheit') {
         document.querySelector('input[name="temperature"][value="fahrenheit"]').checked = true;
         document.querySelector('input[name="wind"][value="mph"]').checked = true;
         document.querySelector('input[name="precipitation"][value="inches"]').checked = true;
@@ -410,11 +413,21 @@ unitsBtn.addEventListener('click', (e) => {
 // Radio buttons for units
 document.querySelectorAll('.unit-radio').forEach(radio => {
     radio.addEventListener('change', (e) => {
+        // Update the specific unit type
         if (e.target.name === 'temperature') {
-            currentUnits = e.target.value === 'fahrenheit' ? 'imperial' : 'metric';
+            currentUnits.temperature = e.target.value === 'fahrenheit' ? 'fahrenheit' : 'metric';
+            localStorage.setItem('unitTemp', currentUnits.temperature);
+        } else if (e.target.name === 'wind') {
+            currentUnits.wind = e.target.value === 'mph' ? 'mph' : 'metric';
+            localStorage.setItem('unitWind', currentUnits.wind);
+        } else if (e.target.name === 'precipitation') {
+            currentUnits.precipitation = e.target.value === 'inches' ? 'inches' : 'metric';
+            localStorage.setItem('unitPrecip', currentUnits.precipitation);
         }
-        localStorage.setItem('weatherUnits', currentUnits);
+
+        // Apply all conversions
         applyUnits();
+        updateUnitsUI();
     });
 });
 
