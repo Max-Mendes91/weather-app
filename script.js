@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('locationName').textContent = 'Częstochowa, Poland';
         renderDailyForecast(data);   // now #dayText exists
         renderHourlyForecast(0, data);
-        
+
     });
     applyUnits();
 });
@@ -63,8 +63,11 @@ function getWeatherIcon(code) {
 
 // 3. API CALLS
 
+let lastWeatherCoords = null;
 
 async function getWeather(lat, long) {
+    lastWeatherCoords = { lat, lon: long };
+
     try {
         const response = await fetch(
             `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current_weather=true&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,wind_speed_10m_max,relative_humidity_2m_max&hourly=temperature_2m,weathercode&timezone=auto`
@@ -76,10 +79,21 @@ async function getWeather(lat, long) {
         renderAllWeather(data);
         return data;
     } catch (err) {
-        console.error('Error fetching weather:', err);
+        console.error(err);
+        showApiError();
     }
 }
 
+const apiErrorEl = document.getElementById('apiError');
+const retryBtn = document.getElementById('retryBtn');
+
+function showApiError() { apiErrorEl.classList.remove('hidden'); }
+function hideApiError() { apiErrorEl.classList.add('hidden'); }
+
+retryBtn.addEventListener('click', () => {
+    hideApiError();
+    if (lastWeatherCoords) getWeather(lastWeatherCoords.lat, lastWeatherCoords.lon);
+});
 
 
 // 4. RENDER ALL WEATHER DATA
@@ -163,7 +177,7 @@ function renderDailyForecast(data) {
     const codes = data.daily.weather_code;
     const maxTemps = data.daily.temperature_2m_max;
     const minTemps = data.daily.temperature_2m_min;
-    
+
     days.forEach((date, i) => {
         const card = document.createElement('div');
         card.className = 'bg-neutral-800  rounded-xl p-3 md:p-4 text-center hover:bg-neutral-700 transition-colors cursor-pointer border border-neutral-700 day-card';
@@ -193,7 +207,6 @@ function renderDailyForecast(data) {
 
 
 // 7. RENDER HOURLY FORECAST
-
 
 function renderHourlyForecast(selectedDayIndex, data, updateDayLabel = true) {
     const dayName = new Date(data.daily.time[selectedDayIndex]).toLocaleDateString('en-US', { weekday: 'long' });
@@ -240,14 +253,12 @@ function renderHourlyForecast(selectedDayIndex, data, updateDayLabel = true) {
 
 
 // 8. POPULATE DAY DROPDOWN
-
-
 function populateDayDropdown(data) {
     const dayDropdown = document.getElementById('daySelectionDropdown');
     dayDropdown.innerHTML = '';
 
     data.daily.time.forEach((date, index) => {
-        const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' });
+        const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
 
         const btn = document.createElement('button');
         btn.textContent = dayName;
@@ -268,11 +279,13 @@ function populateDayDropdown(data) {
 
 
 // 9. SEARCH FUNCTIONALITY
+let searchTimeout;
+let highlightedIndex = -1;
+let currentResults = []; // store last fetched locations
 
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
 const searchBtn = document.getElementById('searchBtn');
-let searchTimeout;
 
 searchBtn.addEventListener('click', performSearch);
 searchInput.addEventListener('keypress', (e) => {
@@ -282,6 +295,8 @@ searchInput.addEventListener('keypress', (e) => {
 searchInput.addEventListener('input', () => {
     const query = searchInput.value.trim();
     clearTimeout(searchTimeout);
+    highlightedIndex = -1;
+    currentResults = [];
 
     if (!query) {
         searchResults.classList.add('hidden');
@@ -297,24 +312,28 @@ searchInput.addEventListener('input', () => {
             const data = await response.json();
 
             searchResults.innerHTML = '';
+            currentResults = data.results || [];
 
-            if (!data.results || data.results.length === 0) {
+            if (!currentResults.length) {
                 searchResults.innerHTML = '<p class="px-4 py-2 text-neutral-400 text-sm">No results found</p>';
                 searchResults.classList.remove('hidden');
                 return;
             }
 
-            data.results.forEach(loc => {
+            currentResults.forEach((loc, index) => {
                 const item = document.createElement('div');
                 item.className = 'px-4 py-2 cursor-pointer hover:bg-neutral-700 text-neutral-0 text-sm border-b border-neutral-700';
                 item.textContent = `${loc.name}${loc.admin1 ? ', ' + loc.admin1 : ''}, ${loc.country}`;
-
-                item.addEventListener('click', () => {
-                    selectLocation(loc);
-                });
-
+                item.addEventListener('click', () => selectLocation(loc));
                 searchResults.appendChild(item);
             });
+
+            // HIGHLIGHT FIRST ITEM AUTOMATICALLY
+            if (currentResults.length > 0) {
+                highlightedIndex = 0;
+                const items = Array.from(searchResults.children);
+                updateHighlight(items);
+            }
 
             searchResults.classList.remove('hidden');
         } catch (err) {
@@ -323,10 +342,43 @@ searchInput.addEventListener('input', () => {
     }, 300);
 });
 
+// KEYBOARD NAVIGATION
+searchInput.addEventListener('keydown', (e) => {
+    const items = Array.from(searchResults.children);
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        highlightedIndex = (highlightedIndex + 1) % items.length;
+        updateHighlight(items);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+        updateHighlight(items);
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (highlightedIndex >= 0 && currentResults[highlightedIndex]) {
+            selectLocation(currentResults[highlightedIndex]);
+            highlightedIndex = -1;
+        } else {
+            performSearch();
+        }
+    }
+});
+
+function updateHighlight(items) {
+    items.forEach((item, i) => {
+        if (i === highlightedIndex) {
+            item.classList.add('bg-blue-500', 'text-white');
+        } else {
+            item.classList.remove('bg-blue-500', 'text-white');
+        }
+    });
+}
+
 function performSearch() {
     const query = searchInput.value.trim();
     if (!query) return;
-    // Search is already triggered by input event, just make sure dropdown is shown
     searchResults.classList.remove('hidden');
 }
 
@@ -336,6 +388,7 @@ function selectLocation(loc) {
     document.getElementById('locationName').textContent = `${loc.name}, ${loc.country}`;
     getWeather(loc.latitude, loc.longitude);
 }
+
 
 
 // 10. UNITS & CONVERSIONS
