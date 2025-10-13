@@ -62,13 +62,18 @@ async function getWeather(lat, long) {
         );
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
+        return data;
         console.log('Raw weather data:', data);
     } catch (err) {
         console.log('Error fetching weather', err);
     }
 }
-getWeather(52.52, 13.41);
-
+getWeather(52.52, 13.41).then(data => {
+    if (data) {
+        renderDailyForecast(data);
+        renderHourlyForecast(0, data);
+    }
+});
 
 // 2. RENDER DAILY FORECAST CARDS
 //    - Loop through 7 days of forecast data
@@ -89,7 +94,7 @@ function renderDailyForecast(data) {
 
     days.forEach((date, i) => {
         const card = document.createElement('div');
-        card.className = 'forecast-card p-4 rounded-2xl shadow bg-white hover:bg-gray-100 cursor-pointer flex flex-col items-center text-center';
+        card.className = 'bg- forecast-card p-4 rounded-2xl shadow bg-white hover:bg-gray-100 cursor-pointer flex flex-col items-center text-center';
 
         const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' });
         const icon = getWeatherIcon(codes[i]);
