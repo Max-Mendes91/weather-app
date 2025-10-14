@@ -61,12 +61,27 @@ function getWeatherIcon(code) {
 }
 
 
+//Loading state functions
+const loadingState = document.getElementById('loadingState');
+const appWrapper = document.getElementById('appWrapper');
+
+function showLoading() {
+    loadingState.classList.remove('hidden');
+    appWrapper.classList.add('opacity-50', 'pointer-events-none');
+}
+
+function hideLoading() {
+    loadingState.classList.add('hidden');
+    appWrapper.classList.remove('opacity-50', 'pointer-events-none');
+}
+
 // 3. API CALLS
 
 let lastWeatherCoords = null;
 
 async function getWeather(lat, long) {
     lastWeatherCoords = { lat, lon: long };
+    showLoading();
 
     try {
         const response = await fetch(
@@ -81,6 +96,8 @@ async function getWeather(lat, long) {
     } catch (err) {
         console.error(err);
         showApiError();
+    } finally {
+        hideLoading();
     }
 }
 
