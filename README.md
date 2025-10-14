@@ -2,6 +2,8 @@
 
 A modern, responsive weather application built with vanilla JavaScript, Tailwind CSS, and the Open-Meteo API. Get real-time weather data, hourly forecasts, and 7-day predictions for any location worldwide.
 
+**Live Demo:** [Weather App](https://max-mendes91.github.io/weather-app/)
+
 ## Features
 
 - **Current Weather Display**: Real-time temperature, humidity, wind speed, and precipitation
