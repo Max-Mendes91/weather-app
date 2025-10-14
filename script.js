@@ -137,7 +137,7 @@ function updateCurrentWeather(data) {
     const feelsC = (daily.apparent_temperature_max && daily.apparent_temperature_max[0]) ?? tempC;
     document.getElementById('feelsLike').dataset.tempC = Math.round(feelsC);
     document.getElementById('feelsLike').textContent =
-        currentUnits === 'imperial'
+        currentUnits.temperature === 'fahrenheit'
             ? `${Math.round(feelsC * 9 / 5 + 32)}°F`
             : `${Math.round(feelsC)}°C`;
 
@@ -149,7 +149,7 @@ function updateCurrentWeather(data) {
     const windKmh = current.windspeed ?? 0;
     document.getElementById('windSpeed').dataset.windKmh = windKmh;
     document.getElementById('windSpeed').textContent =
-        currentUnits === 'imperial'
+        currentUnits.temperature === 'fahrenheit'
             ? `${Math.round(windKmh * 0.621371)} mph`
             : `${Math.round(windKmh)} km/h`;
 
@@ -157,7 +157,7 @@ function updateCurrentWeather(data) {
     const precipMm = (daily.precipitation_sum && daily.precipitation_sum[0]) ?? 0;
     document.getElementById('precipitation').dataset.precipMm = precipMm;
     document.getElementById('precipitation').textContent =
-        currentUnits === 'imperial'
+        currentUnits.temperature === 'fahrenheit'
             ? `${(precipMm * 0.0393701).toFixed(2)} in`
             : `${Math.round(precipMm)} mm`;
 
