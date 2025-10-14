@@ -21,10 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyUnits();
 });
 
-
 // 2. WEATHER ICON MAPPING
-
-
 const weatherIcons = {
     0: './assets/images/icon-sunny.webp',
     1: './assets/images/icon-partly-cloudy.webp',

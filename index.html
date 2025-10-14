@@ -50,18 +50,48 @@
     .heading {
       font-family: 'Bricolage Grotesque', sans-serif;
     }
+
+    /* Custom thin scrollbar styling */
+    #hourlyForecastContainer::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    #hourlyForecastContainer::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #hourlyForecastContainer::-webkit-scrollbar-thumb {
+      background: hsl(243, 23%, 30%);
+      border-radius: 2px;
+    }
+
+    #hourlyForecastContainer::-webkit-scrollbar-thumb:hover {
+      background: hsl(243, 23%, 40%);
+    }
+
+    @keyframes spin-slow {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .animate-spin-slow {
+      animation: spin-slow 2s linear infinite;
+    }
   </style>
 </head>
 
 <body class="bg-neutral-900 text-neutral-0 min-h-screen">
-  
-  
+
   <!-- loading states -->
   <div id="loadingState" class="hidden fixed inset-0 flex items-center justify-center bg-neutral-900/60 z-50">
     <img src="./assets/images/icon-loading.svg" alt="Loading" class="w-12 h-12 animate-spin-slow">
   </div>
   <div id="appWrapper">
-
 
     <!-- API Error Overlay -->
     <div id="apiError"
@@ -77,73 +107,76 @@
     </div>
 
     <!-- Header -->
-    <div class="p-4 md:p-6 flex justify-between items-center border-b border-neutral-800">
-      <div class="flex items-center gap-2">
-        <img src="./assets/images/logo.svg" alt="Weather Now" class="w-20 h-10 md:w-40 md:h-20">
-      </div>
-      <div class="relative">
-        <button
-          class="border border-neutral-500 hover:border-blue-500 text-neutral-300 px-3 py-2 rounded font-medium transition-colors text-sm md:text-base flex items-center gap-2"
-          id="unitsBtn">
-          <img src="assets/images/icon-units.svg" alt="Units icon" class="w-5 h-5">
-          Units
-        </button>
+    <div class="p-4 md:p-8 max-w-7xl mx-auto">
+      <div class="flex justify-between items-center">
+        <!-- Logo -->
+        <div class="flex items-center">
+          <img src="./assets/images/logo.svg" alt="Weather Now" class="w-20 h-10 md:w-40 md:h-20">
+        </div>
+        <div class="relative">
+          <button
+            class="border border-neutral-500 hover:border-blue-500 text-neutral-300 px-2 py-1 md:px-3 md:py-2 rounded font-medium transition-colors text-xs md:text-base flex items-center gap-2"
+            id="unitsBtn">
+            <img src="assets/images/icon-units.svg" alt="Units icon" class="w-4 h-4 md:w-5 md:h-5">
+            Units
+          </button>
 
-        <!-- Units Dropdown -->
-        <div id="unitsDropdown"
-          class="hidden absolute top-12 right-0 bg-neutral-800 rounded-lg shadow-xl z-50 w-64 border border-neutral-700">
-          <div class="p-4 space-y-4">
-            <!-- Switch to Imperial Header -->
-            <div class="text-center pb-3 border-b border-neutral-700">
-              <p class="text-neutral-400 text-xs font-bold">SWITCH TO IMPERIAL</p>
-            </div>
+          <!-- Units Dropdown -->
+          <div id="unitsDropdown"
+            class="hidden absolute top-12 right-0 bg-neutral-800 rounded-lg shadow-xl z-50 w-64 border border-neutral-700">
+            <div class="p-4 space-y-4">
+              <!-- Switch to Imperial Header -->
+              <div class="text-center pb-3 border-b border-neutral-700">
+                <p class="text-neutral-400 text-xs font-bold">SWITCH TO IMPERIAL</p>
+              </div>
 
-            <!-- Temperature -->
-            <div>
-              <h5 class="text-xs font-bold text-neutral-300 mb-3 uppercase">Temperature</h5>
-              <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
-                <span class="text-neutral-300 text-sm flex-1">Celsius (°C)</span>
-                <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-                <input type="radio" name="temperature" value="celsius" class="unit-radio hidden" checked>
-              </label>
+              <!-- Temperature -->
+              <div>
+                <h5 class="text-xs font-bold text-neutral-300 mb-3 uppercase">Temperature</h5>
+                <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
+                  <span class="text-neutral-300 text-sm flex-1">Celsius (°C)</span>
+                  <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+                  <input type="radio" name="temperature" value="celsius" class="unit-radio hidden" checked>
+                </label>
 
-              <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
-                <span class="text-neutral-300 text-sm flex-1">Fahrenheit (°F)</span>
-                <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-                <input type="radio" name="temperature" value="fahrenheit" class="unit-radio hidden w-4 h-4">
-              </label>
-            </div>
+                <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
+                  <span class="text-neutral-300 text-sm flex-1">Fahrenheit (°F)</span>
+                  <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+                  <input type="radio" name="temperature" value="fahrenheit" class="unit-radio hidden w-4 h-4">
+                </label>
+              </div>
 
-            <!-- Wind Speed -->
-            <div class="border-t border-neutral-700 pt-3">
-              <h5 class="text-xs font-bold text-neutral-300 mb-3 uppercase">Wind Speed</h5>
-              <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
-                <span class="text-neutral-300 text-sm flex-1">km/h</span>
-                <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-                <input type="radio" name="wind" value="kmh" class="unit-radio hidden w-4 h-4" checked>
-              </label>
+              <!-- Wind Speed -->
+              <div class="border-t border-neutral-700 pt-3">
+                <h5 class="text-xs font-bold text-neutral-300 mb-3 uppercase">Wind Speed</h5>
+                <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
+                  <span class="text-neutral-300 text-sm flex-1">km/h</span>
+                  <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+                  <input type="radio" name="wind" value="kmh" class="unit-radio hidden w-4 h-4" checked>
+                </label>
 
-              <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
-                <span class="text-neutral-300 text-sm flex-1">mph</span>
-                <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-                <input type="radio" name="wind" value="mph" class="unit-radio hidden w-4 h-4">
-              </label>
-            </div>
+                <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
+                  <span class="text-neutral-300 text-sm flex-1">mph</span>
+                  <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+                  <input type="radio" name="wind" value="mph" class="unit-radio hidden w-4 h-4">
+                </label>
+              </div>
 
-            <!-- Precipitation -->
-            <div class="border-t border-neutral-700 pt-3">
-              <h5 class="text-xs font-bold text-neutral-300 mb-3 uppercase">Precipitation</h5>
-              <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
-                <span class="text-neutral-300 text-sm flex-1">Millimeters (mm)</span>
-                <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-                <input type="radio" name="precipitation" value="mm" class="unit-radio hidden w-4 h-4" checked>
-              </label>
+              <!-- Precipitation -->
+              <div class="border-t border-neutral-700 pt-3">
+                <h5 class="text-xs font-bold text-neutral-300 mb-3 uppercase">Precipitation</h5>
+                <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
+                  <span class="text-neutral-300 text-sm flex-1">Millimeters (mm)</span>
+                  <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+                  <input type="radio" name="precipitation" value="mm" class="unit-radio hidden w-4 h-4" checked>
+                </label>
 
-              <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
-                <span class="text-neutral-300 text-sm flex-1">Inches (in)</span>
-                <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
-                <input type="radio" name="precipitation" value="inches" class="unit-radio hidden w-4 h-4">
-              </label>
+                <label class="flex items-center justify-between p-2 rounded hover:bg-neutral-700 cursor-pointer mb-2">
+                  <span class="text-neutral-300 text-sm flex-1">Inches (in)</span>
+                  <img src="./assets/images/icon-checkmark.svg" class="checkmark w-4 h-4 hidden" alt="Selected">
+                  <input type="radio" name="precipitation" value="inches" class="unit-radio hidden w-4 h-4">
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -184,7 +217,6 @@
         <div class="lg:col-span-2 space-y-4 md:space-y-6">
 
           <!-- Current Weather Card -->
-
           <div class="rounded-2xl p-6 md:p-8 relative overflow-hidden"
             style="background-image: url('./assets/images/bg-today-large.svg'); background-size: cover; background-position: center;">
             <!-- Fallback gradient if image fails to load -->
@@ -241,82 +273,34 @@
         </div>
 
         <!-- Right Column: Hourly Forecast -->
-        <div>
-          <div class="bg-neutral-800 rounded-2xl p-4 md:p-6 border border-neutral-700 sticky top-4">
-            <div class="flex justify-between items-center mb-4 md:mb-6">
-              <h3 class="heading text-base md:text-lg font-bold">Hourly forecast</h3>
+        <div class="bg-neutral-800 rounded-2xl p-4 md:p-6 border border-neutral-700 flex flex-col" style="height: 606px;">
+          <div class="flex justify-between items-center mb-4 md:mb-6">
+            <h3 class="heading text-base md:text-lg font-bold">Hourly forecast</h3>
 
-              <!-- Day Dropdown for Hourly -->
-              <div class="relative">
-                <button id="hourlyDaySelector"
-                  class="bg-neutral-700 text-neutral-400 hover:text-neutral-0 text-xs md:text-sm font-medium transition-colors px-3 py-1 rounded flex items-center gap-2">
-                  <span id="dayText"></span>
-                  <img src="./assets/images/icon-dropdown.svg" alt="dropdown" class="w-4 h-4">
-                </button>
+            <!-- Day Dropdown for Hourly -->
+            <div class="relative">
+              <button id="hourlyDaySelector"
+                class="bg-neutral-700 text-neutral-400 hover:text-neutral-0 text-xs md:text-sm font-medium transition-colors px-3 py-1 rounded flex items-center gap-2">
+                <span id="dayText"></span>
+                <img src="./assets/images/icon-dropdown.svg" alt="dropdown" class="w-4 h-4">
+              </button>
 
-                <!-- Day Selection Dropdown -->
-                <div id="daySelectionDropdown"
-                  class="hidden absolute top-full right-0 mt-2 bg-neutral-700 rounded-lg shadow-xl z-50 border border-neutral-600 min-w-32">
-                  <div class="py-2">
-                    <!-- Days will be rendered here by JavaScript -->
-                  </div>
+              <!-- Day Selection Dropdown -->
+              <div id="daySelectionDropdown"
+                class="hidden absolute top-full right-0 mt-2 bg-neutral-700 rounded-lg shadow-xl z-50 border border-neutral-600 min-w-32">
+                <div class="py-2">
+                  <!-- Days will be rendered here by JavaScript -->
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- DYNAMIC: Hourly items will be rendered here by JavaScript -->
-            <div id="hourlyForecastContainer"
-              class="space-y-2 md:space-y-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent">
-              <!-- Hour items will be created dynamically -->
-            </div>
+          <!-- DYNAMIC: Hourly items will be rendered here by JavaScript -->
+          <div id="hourlyForecastContainer" class="flex-1 space-y-2 md:space-y-3 overflow-y-auto">
+            <!-- Hour items will be created dynamically -->
           </div>
         </div>
       </div>
-      <style>
-        /* Custom thin scrollbar styling */
-        #hourlyForecastContainer::-webkit-scrollbar {
-          width: 4px;
-        }
-
-        #hourlyForecastContainer::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
-        #hourlyForecastContainer::-webkit-scrollbar-thumb {
-          background: hsl(243, 23%, 30%);
-          border-radius: 2px;
-        }
-
-        #hourlyForecastContainer::-webkit-scrollbar-thumb:hover {
-          background: hsl(243, 23%, 40%);
-        }
-
-        @keyframes spin-slow {
-          from {
-            transform: rotate(0deg);
-          }
-
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        /* Loading spin animation */
-        @keyframes spin-slow {
-          from {
-            transform: rotate(0deg);
-          }
-
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .animate-spin-slow {
-          animation: spin-slow 2s linear infinite;
-        }
-      </style>
-
     </div>
   </div>
 </body>
