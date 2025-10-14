@@ -101,6 +101,7 @@ async function getWeather(lat, long) {
     }
 }
 
+//show API error 
 const apiErrorEl = document.getElementById('apiError');
 const retryBtn = document.getElementById('retryBtn');
 
@@ -114,8 +115,6 @@ retryBtn.addEventListener('click', () => {
 
 
 // 4. RENDER ALL WEATHER DATA
-
-
 function renderAllWeather(data) {
     updateCurrentWeather(data);
     renderDailyForecast(data);
@@ -559,7 +558,5 @@ document.addEventListener('click', (e) => {
 
 // 14. INITIALIZE ALL EVENT LISTENERS
 function initializeEventListeners() {
-    // All event listeners are set up above
-    // This function exists for organization and future additions
 }
 initializeEventListeners();
