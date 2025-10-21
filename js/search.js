@@ -1,6 +1,6 @@
 // search.js
 import { fetchLocationResults } from './data.js';
-import { fetchWeather } from './data.js';
+// import { fetchWeather } from './data.js';
 
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
