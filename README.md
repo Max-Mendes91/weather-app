@@ -6,83 +6,125 @@ A modern, responsive weather application built with vanilla JavaScript, Tailwind
 
 ## Features
 
-- **Current Weather Display**: Real-time temperature, humidity, wind speed, and precipitation
-- **Daily Forecast**: 7-day weather outlook with high/low temperatures and weather icons
-- **Hourly Forecast**: Detailed hourly weather with selectable day view
-- **Location Search**: Geocoding-powered search to find any location worldwide
-- **Unit Conversion**: Switch between metric and imperial units (°C/°F, km/h/mph, mm/in)
-- **Responsive Design**: Mobile-first approach with optimized layouts for all devices
-- **Persistent Preferences**: Units and settings saved to localStorage
-- **Error Handling**: Graceful API error states with retry functionality
-- **Loading States**: Visual feedback during data fetching
+- **Current Weather Display**: Real-time temperature, humidity, wind speed, and precipitation with weather icons
+- **Daily Forecast**: 7-day weather outlook with high/low temperatures and interactive day cards
+- **Hourly Forecast**: Detailed hourly weather with selectable day view and dropdown navigation
+- **Location Search**: Geocoding-powered search with debounced API calls, keyboard navigation, and auto-complete
+- **Unit Conversion**: Switch between metric and imperial units (°C/°F, km/h/mph, mm/in) with persistent preferences
+- **Responsive Design**: Mobile-first approach with optimized layouts for all devices and screen sizes
+- **Persistent Preferences**: Units and settings saved to localStorage across browser sessions
+- **Error Handling**: Graceful API error states with retry functionality and user-friendly messages
+- **Loading States**: Visual feedback during data fetching with custom loading animations
+- **Modular Architecture**: Clean separation of concerns with ES6 modules for maintainability
+- **Custom Fonts**: Beautiful typography with Bricolage Grotesque and DM Sans fonts
+- **Weather Icons**: Comprehensive set of weather condition icons for accurate visual representation
 
 ## Tech Stack
 
-| Layer                | Technology                             |
-| -------------------- | -------------------------------------- |
-| **Frontend**         | HTML5, Vanilla JavaScript (ES6+)       |
-| **Styling**          | Tailwind CSS 3                         |
-| **Weather Data**     | Open-Meteo API (free, no key required) |
-| **Geocoding**        | Open-Meteo Geocoding API               |
-| **State Management** | Browser localStorage                   |
-| **Icons**            | Custom SVG assets                      |
+| Layer                | Technology                              |
+| -------------------- | --------------------------------------- |
+| **Frontend**         | HTML5, Vanilla JavaScript (ES6+)        |
+| **Styling**          | Tailwind CSS 3                          |
+| **Weather Data**     | Open-Meteo API (free, no key required)  |
+| **Geocoding**        | Open-Meteo Geocoding API                |
+| **State Management** | Browser localStorage                    |
+| **Icons**            | Custom SVG assets                       |
+| **Architecture**     | ES6 Modules with separation of concerns |
 
 ## Project Structure
 
 ```
 weather-app/
-├── index.html          # Main HTML structure
-├── script.js           # All JavaScript logic
+├── index.html              # Main HTML structure
+├── js/
+│   ├── main.js            # Application entry point and coordination
+│   ├── data.js            # API calls and data fetching
+│   ├── ui.js              # DOM manipulation and rendering
+│   ├── search.js          # Location search functionality
+│   ├── units.js           # Unit conversion and persistence
+│   └── utils.js           # Utility functions and weather icons
 ├── assets/
-│   └── images/         # Weather icons & UI assets
-└── README.md           # This file
+│   ├── images/            # Weather icons & UI assets
+│   └── fonts/             # Custom fonts (Bricolage Grotesque, DM Sans)
+├── design/                # Design mockups and reference images
+└── README.md              # This file
 ```
 
 ## Code Architecture
 
-### 1. State & Initialization (Lines 1-15)
-Central state management with current weather data and unit preferences. Initialization triggers on DOM load with default location (Częstochowa, Poland).
+The application follows a modular ES6 architecture with clear separation of concerns:
 
-### 2. Weather Icon Mapping (Lines 18-46)
-Maps WMO weather codes to corresponding icon files for accurate visual representation.
+### 1. **main.js** - Application Coordinator
+- **Entry Point**: Initializes the application and coordinates between modules
+- **State Management**: Manages global state (currentWeatherData, selectedDayIndex)
+- **Event Coordination**: Sets up event listeners and handles custom events
+- **Initialization**: Loads default location (Częstochowa, Poland) on startup
+- **Module Integration**: Imports and coordinates all other modules
 
-### 3. API Calls (Lines 49-73)
-Async function `getWeather(lat, long)` fetches data from Open-Meteo with comprehensive daily and hourly parameters. Includes error handling and loading state management.
+### 2. **data.js** - API Layer
+- **Weather API**: `fetchWeather(lat, lon)` - Fetches comprehensive weather data from Open-Meteo
+- **Geocoding API**: `fetchLocationResults(query)` - Searches for locations worldwide
+- **Error Handling**: HTTP status checking and error propagation
+- **Data Formatting**: Raw API responses ready for consumption
 
-### 4. Rendering Engine (Lines 76-231)
-Modular rendering functions for each UI component:
-- `updateCurrentWeather()` - Current conditions display
-- `renderDailyForecast()` - 7-day cards with click interactions
-- `renderHourlyForecast()` - Day-filtered hourly data
-- `populateDayDropdown()` - Day selection menu
+### 3. **ui.js** - Presentation Layer
+- **Rendering Engine**: Modular functions for each UI component
+- **Current Weather**: `updateCurrentWeather()` - Displays current conditions
+- **Daily Forecast**: `renderDailyForecast()` - 7-day cards with click interactions
+- **Hourly Forecast**: `renderHourlyForecast()` - Day-filtered hourly data
+- **Loading States**: `showLoading()`, `hideLoading()` - Visual feedback
+- **Error States**: `showApiError()`, `hideApiError()` - Error handling UI
 
-### 5. Search Functionality (Lines 234-320)
-Advanced search with:
-- Debounced API calls (300ms delay)
-- Keyboard navigation (arrow keys, Enter)
-- Location highlighting
-- Auto-highlight first result
+### 4. **search.js** - Search Functionality
+- **Debounced Search**: 300ms delay reduces API calls during typing
+- **Keyboard Navigation**: Arrow keys, Enter key support
+- **Result Highlighting**: Visual feedback for selected results
+- **Location Selection**: Triggers weather updates via custom events
+- **Auto-complete**: Real-time search suggestions
 
-### 6. Units & Conversions (Lines 323-395)
-Unit system with localStorage persistence:
-- Temperature: Celsius ↔ Fahrenheit
-- Wind: km/h ↔ mph
-- Precipitation: mm ↔ inches
+### 5. **units.js** - Unit Management
+- **Unit Conversion**: Temperature (°C/°F), Wind (km/h/mph), Precipitation (mm/in)
+- **Persistence**: localStorage integration for user preferences
+- **Dynamic Updates**: Real-time unit conversion across all elements
+- **UI Synchronization**: Updates dropdown states and checkmarks
 
-Conversion functions apply dynamically across all elements using data attributes.
+### 6. **utils.js** - Utility Functions
+- **Weather Icons**: Maps WMO weather codes to icon files
+- **Conversion Functions**: Mathematical conversions between unit systems
+- **Icon Resolution**: `getWeatherIcon(code)` - Returns appropriate weather icon
 
-### 7. Event Listeners (Lines 398-450)
-Modular event handling for:
-- Units dropdown toggle and selection
-- Hourly day selector dropdown
-- Search input and results
-- Outside-click dismissal
+### Event-Driven Communication
+The modules communicate through custom DOM events:
+- `locationSelected` - Triggers weather data fetch
+- `daySelected` - Updates hourly forecast view
+- `apiRetry` - Handles API error recovery
 
 ## Installation & Setup
 
-1. Clone the repository
-2. No build process required - open `index.html` in a browser
-3. Ensure internet connection for API calls
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/max-mendes91/weather-app.git
+   cd weather-app
+   ```
+
+2. **No build process required** - The app uses ES6 modules and can run directly in modern browsers
+   - Open `index.html` in a web browser
+   - Ensure you have an internet connection for API calls
+   - Modern browser required (Chrome 61+, Firefox 60+, Safari 10.1+)
+
+3. **Development Setup** (Optional)
+   - For local development, use a local server to avoid CORS issues:
+   ```bash
+   # Using Python
+   python -m http.server 8000
+   
+   # Using Node.js
+   npx serve .
+   
+   # Using PHP
+   php -S localhost:8000
+   ```
+   - Then visit `http://localhost:8000`
 
 ## Usage
 
@@ -124,21 +166,39 @@ Returns up to 5 matching locations with coordinates.
 
 ## Data Flow
 
+The application follows a clean data flow pattern with modular separation:
+
 ```
 User Input (Search/Location Click)
     ↓
-getWeather(lat, lon)
+search.js → fetchLocationResults()
     ↓
-Fetch Open-Meteo API
+Custom Event: 'locationSelected'
     ↓
-renderAllWeather()
+main.js → loadAndRender(lat, lon)
+    ↓
+data.js → fetchWeather(lat, lon)
+    ↓
+Open-Meteo API Response
+    ↓
+ui.js → renderAllWeather(data)
     ├─ updateCurrentWeather()
     ├─ renderDailyForecast()
     ├─ renderHourlyForecast()
     └─ populateDayDropdown()
     ↓
+units.js → applyUnits()
+    ↓
 Display + Store in localStorage
 ```
+
+### Module Interaction Flow
+1. **User searches** → `search.js` handles input and API calls
+2. **Location selected** → Custom event dispatched to `main.js`
+3. **Weather fetch** → `data.js` calls Open-Meteo API
+4. **Data rendering** → `ui.js` updates all UI components
+5. **Unit conversion** → `units.js` applies user preferences
+6. **State persistence** → Preferences saved to localStorage
 
 ## Browser Support
 
@@ -149,10 +209,13 @@ Display + Store in localStorage
 
 ## Performance Considerations
 
-- **Debounced search**: 300ms delay reduces API calls during typing
-- **Lazy rendering**: Only visible elements update on day/unit changes
-- **localStorage caching**: Units persist without server calls
-- **Minimal dependencies**: Vanilla JS reduces bundle size
+- **Modular Architecture**: ES6 modules enable tree-shaking and better caching
+- **Debounced Search**: 300ms delay reduces API calls during typing
+- **Lazy Rendering**: Only visible elements update on day/unit changes
+- **localStorage Caching**: Units persist without server calls
+- **Minimal Dependencies**: Vanilla JS reduces bundle size
+- **Event-Driven Updates**: Custom events prevent unnecessary re-renders
+- **Efficient DOM Updates**: Targeted element updates instead of full page refreshes
 
 ## Future Enhancements
 
